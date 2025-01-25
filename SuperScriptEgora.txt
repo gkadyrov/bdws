@@ -1,0 +1,96 @@
+using UnityEngine;
+using TMPro;
+
+public class Player1 : MonoBehaviour
+{
+    [SerializeField] Rigidbody rb;
+    [SerializeField] float moveSpeed;
+    [SerializeField] float jumpForse;
+    [SerializeField] Animator anim;
+    [SerializeField] GameObject menu;
+    [SerializeField] TMP_Text score;
+    float roundScore;
+    bool isGameOver = false;
+    bool isShield;
+
+    void Start()
+    {  
+    }
+   
+   
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Money"))
+        {
+            roundScore += 3;
+            Destroy(other.gameObject);
+        }
+        if (other.CompareTag("Shield"))
+        {
+            isShield = true;
+            Destroy(other.gameObject);
+            Invoke("DeactivateShield", 5f);
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            if (isShield)
+            {
+                Destroy(collision.gameObject);
+            }
+            else
+            {
+                menu.SetActive(true);
+                isGameOver = true;
+                anim.SetBool("death", true);
+            }
+        } 
+    }
+        void DeactivateShield()
+        {
+            isShield = false;
+        }
+    
+        void Update()
+        {
+            if (!isGameOver)
+            {
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    rb.AddForce(Vector3.up * jumpForse, ForceMode.Impulse);
+                }
+                //���� ������ ������� A � ������� ��������� �� �� ����� ������ ������ �������, ��
+                if (Input.GetKeyDown(KeyCode.A) && transform.position.x > -9)
+                {
+                    //����������� ��������� �� 9 ������� �����
+                    transform.Translate(-9, 0, 0);
+                }
+                //���� ������ ������� D � ������� ��������� �� �� ������ ������ ������ �������, ��
+                if (Input.GetKeyDown(KeyCode.D) && transform.position.x < 9)
+                {
+                    ////����������� ��������� �� 9 ������� ������
+                    transform.Translate(9, 0, 0);
+                }
+                if (rb.linearVelocity.y > 0)
+                {
+                    anim.SetBool("jump", true);
+                }
+                if (rb.linearVelocity.y == 0)
+                {
+                    anim.SetBool("jump", false);
+                }
+                roundScore += Time.deltaTime;
+                score.text = roundScore.ToString("f1");
+            }
+        }
+        private void FixedUpdate()
+        {
+            if (!isGameOver)
+            {
+                print(Time.deltaTime);
+                rb.MovePosition(transform.position + new Vector3(0, 0, moveSpeed) * Time.deltaTime);
+            }
+        }
+} 
